@@ -34,6 +34,18 @@ public class Orders implements java.io.Serializable {
     return orders.size();
   }
 
+  /*Removes one order  by its index
+    * @param index of order to remove
+    * */
+  public void removeCompleteOrders(){
+    for (int i = 0; i<orders.size();i++) {
+
+      if (orders.get(i).isPaid())orders.remove(i);
+
+    }
+
+  }
+
   @Override
   public String toString() {
     return "Orders{" +

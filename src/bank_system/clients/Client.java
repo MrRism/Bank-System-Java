@@ -79,6 +79,8 @@ public class Client implements java.io.Serializable {
   /*Adds order to orders
         * @param order */
   public void addOrder(Order order) {
+    removeCompleteOrders();
+
     orders.addOrder(order);
 
   }
@@ -88,6 +90,8 @@ public class Client implements java.io.Serializable {
     * @return Order
     * */
   public Order getOrder(int index) {
+    removeCompleteOrders();
+
     return orders.getOrder(index);
 
   }
@@ -145,6 +149,8 @@ public class Client implements java.io.Serializable {
    */
   public String[] getListOfOrders() {
 
+    removeCompleteOrders();
+
     ArrayList<String> result = new ArrayList<>();
 
     for (int i = 0; i < orders.getOrdersAmount(); i++) {
@@ -164,6 +170,11 @@ public class Client implements java.io.Serializable {
 
     return result.toArray(new String[0]);
 
+  }
+
+  private void removeCompleteOrders(){
+
+    orders.removeCompleteOrders();
   }
 
   /*Adds credit card to cards

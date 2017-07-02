@@ -263,7 +263,8 @@ class ClientFrame extends JFrame {
 
               } else {
 
-                client.paymentProduceToCard(client.getBankAccount(
+                client.paymentProduceToCard(
+                    client.getBankAccount(
                     comboBoxSourcePayment.getSelectedIndex() - 1 - client.getCreditCardsAmount()),
                     Long.parseLong(paymentAmount.getText()),
                     Long.parseLong(paymentDestinationField.getText()));
@@ -430,10 +431,13 @@ class ClientFrame extends JFrame {
 
           case 3:
 
-            if (client.getListOfOrders().length != 0) {
+            if (client.getListOfOrders().length > 0) {
 
               ordersAmountLabel.setText(String.valueOf(client.getListOfOrders().length));
 
+            }
+            else {
+              ordersAmountLabel.setText("no");
             }
             ordersList.removeAll();
             ordersList.setListData(client.getListOfOrders());
@@ -461,6 +465,7 @@ class ClientFrame extends JFrame {
           accountRB.setSelected(true);
           cardRB.setEnabled(false);
           accountRB.setEnabled(false);
+          orderToPay = client.getOrder(ordersList.getSelectedIndex());
           ordersList.setSelectedIndex(-1);
           payOrderButton.setVisible(false);
           tabbedPane.setEnabled(false);

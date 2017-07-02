@@ -8,13 +8,13 @@ import java.util.Date;
  * Created on 3/24/2017.
  *
  * @author Serhii Petrusha aka Mr_Rism
- * @since   JDK1.8
+ * @since JDK1.8
  */
-public class Order implements java.io.Serializable{
+public class Order implements java.io.Serializable {
 
-  private static long counter=1L;
+  private static long counter = 1L;
 
-  private long number=counter++;
+  private long number = counter++;
   private String info;
   private long paymentDestinationNumber;
   private long paymentAmount;
@@ -23,11 +23,11 @@ public class Order implements java.io.Serializable{
 
   private boolean isPaid = false;
 
-  public Order(){
-    this(0,0,"");
+  public Order() {
+    this(0, 0, "");
   }
 
-  public Order(long paymentDestinationNumber,long paymentAmount, String info) {
+  public Order(long paymentDestinationNumber, long paymentAmount, String info) {
 
     this.paymentDestinationNumber = paymentDestinationNumber;
     this.paymentAmount = paymentAmount;

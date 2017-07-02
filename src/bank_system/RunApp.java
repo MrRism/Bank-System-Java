@@ -34,13 +34,13 @@ import java.io.ObjectInputStream;
  * interface re-work
  * hashcode fix
  * after payment update fromCB
+ * order unpaying fix
  *
  * To do:
  * deprecated remove
  * after payment message
  * order creation messages
  * orders info fix long text
- * order unpaying fix
  * fix same payment source as destination
  *
  * Future improvements:

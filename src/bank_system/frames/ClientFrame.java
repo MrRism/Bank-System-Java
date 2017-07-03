@@ -260,6 +260,7 @@ class ClientFrame extends JFrame {
                     Long.parseLong(paymentAmount.getText()),
                     Long.parseLong(paymentDestinationField.getText())
                 );
+                JOptionPane.showMessageDialog(null,"Transaction successful");
 
               } else {
 
@@ -268,6 +269,8 @@ class ClientFrame extends JFrame {
                     comboBoxSourcePayment.getSelectedIndex() - 1 - client.getCreditCardsAmount()),
                     Long.parseLong(paymentAmount.getText()),
                     Long.parseLong(paymentDestinationField.getText()));
+                JOptionPane.showMessageDialog(null,"Transaction successful");
+
               }
 
 
@@ -281,6 +284,8 @@ class ClientFrame extends JFrame {
                     Long.parseLong(paymentDestinationField.getText()),
                     orderToPay);
                 orderToPay = null;
+                JOptionPane.showMessageDialog(null,"Transaction successful");
+
 
               } else {
 
@@ -290,6 +295,8 @@ class ClientFrame extends JFrame {
                     Long.parseLong(paymentDestinationField.getText()),
                     orderToPay);
                 orderToPay = null;
+                JOptionPane.showMessageDialog(null,"Transaction successful");
+
 
               }
 

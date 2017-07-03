@@ -15,6 +15,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
@@ -94,6 +95,11 @@ class AdminFrame extends JFrame {
                   )
               );
           dataStorage.saveToFile();
+          JOptionPane.showMessageDialog(null,"Order added");
+          comboBoxClients.setSelectedIndex(-1);
+          orderDestinationAccount.setText("");
+          orderInfoField.setText("");
+          orderPaymentAmount.setText("");
 
         } catch (NumberFormatException e1) {
 

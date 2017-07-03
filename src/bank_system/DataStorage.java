@@ -30,7 +30,7 @@ public class DataStorage implements java.io.Serializable {
 
   public DataStorage() {
 
-    if (clients.getListOfClients().length < 1) {
+    if (clients.getListOfUsers().length < 1) {
 
       clients.addClient(new Client("admin", "admin", true, clients));
 

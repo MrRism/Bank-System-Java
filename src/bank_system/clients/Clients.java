@@ -3,6 +3,7 @@ package bank_system.clients;
 
 import bank_system.clients.services.BankAccount;
 import bank_system.clients.services.CreditCard;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -99,7 +100,7 @@ public class Clients implements java.io.Serializable{
     * @return string array with size equal to amount of clients.
     *
     * */
-  public String[] getListOfClients(){
+  public String[] getListOfUsers(){
 
     String[] resaut=new String[users.size()];
 
@@ -112,6 +113,21 @@ public class Clients implements java.io.Serializable{
     }
 
     return resaut;
+
+  }
+  public String[] getListOfClients(){
+
+    ArrayList<String> resaut = new ArrayList<>();
+
+    int i = 0;
+
+    for (Client client : users.values()) {
+
+      if (!client.isAdmin())resaut.add(client.getName());
+
+    }
+
+    return resaut.toArray(new String[0]);
 
   }
 

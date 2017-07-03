@@ -35,13 +35,13 @@ import java.io.ObjectInputStream;
  * hashcode fix
  * after payment update fromCB
  * order unpaying fix
+ * after payment message
+ * order creation messages
+ * fix same payment source as destination
  *
  * To do:
  * deprecated remove
- * after payment message
- * order creation messages
  * orders info fix long text
- * fix same payment source as destination
  *
  * Future improvements:
  * add support of float

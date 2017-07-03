@@ -230,9 +230,13 @@ public class Client implements java.io.Serializable {
   public void paymentProduceToCard(MoneyHolder withdrawObject, long amount, long cardNumber)
       throws PaymentException {
     if (owner != null) {
+
       CreditCard depositCard = owner.getCardByNumber(cardNumber);
 
+
       if (depositCard != null) {
+
+        if (depositCard.equals(withdrawObject)) throw new PaymentException("Error: same destination as source");
 
         withdrawObject.withdraw(amount);
         depositCard.deposit(amount);
@@ -264,6 +268,8 @@ public class Client implements java.io.Serializable {
       BankAccount depositAccount = owner.getAccount(accountNumber);
 
       if (depositAccount != null) {
+
+        if (depositAccount.equals(withdrawObject)) throw new PaymentException("Error: same destination as source");
 
         withdrawObject.withdraw(amount);
         depositAccount.deposit(amount);

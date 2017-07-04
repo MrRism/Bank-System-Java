@@ -10,6 +10,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 
 
@@ -38,14 +39,14 @@ import java.io.ObjectInputStream;
  * after payment message
  * order creation messages
  * fix same payment source as destination
+ * orders info fix long text
+ * move file close to finally block
  *
  * To do:
  * deprecated remove
- * orders info fix long text
  *
  * Future improvements:
  * add support of float
- * move file close to finally block
  * add scrolls to lists
  * make currencies
  * history of payments
@@ -72,8 +73,9 @@ public class RunApp {
 
 
   }
+
   /*
-  * Method create new <code>DataBase</code> if it wasn't read.
+  * Method create new <code>DataStorage</code> if it wasn't read.
   * Creates login frame.
   *
   * */
@@ -88,29 +90,36 @@ public class RunApp {
     }
     new LoginFrame(LOGIN_WINDOW_TITLE, dataStorage);
   }
+
   /*
   * Method of getting data from file, either delete corrupted file.
   *
   * */
   private void loadFromFile() {
 
+    ObjectInputStream objectInputStream = null;
+    DataInputStream dataInputStream = null;
+    FileInputStream fileInputStreamData = null;
+    FileInputStream fileInputStreamStatic = null;
+
     File dataFile = new File(
-        System.getProperty("user.home")+"\\AppData\\Local\\BankSystem",
+        System.getProperty("user.home") + "\\AppData\\Local\\BankSystem",
         "clients.dat");
+    File staticFieldsFile = new File(
+        System.getProperty("user.home") + "\\AppData\\Local\\BankSystem",
+        "fields.dat");
 
     try {
 
-      ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(dataFile));
-      dataStorage = (DataStorage) objectInputStream.readObject();
-      objectInputStream.close();
-      File staticFieldsFile = new File(System.getProperty("user.home")+"\\AppData\\Local\\BankSystem",
-          "fields.dat");
+      fileInputStreamData = new FileInputStream(dataFile);
       staticFieldsFile.createNewFile();
-      DataInputStream dataOutputStream = new DataInputStream(new FileInputStream(staticFieldsFile));
-      BankAccount.setCounter(dataOutputStream.readLong());
-      CreditCard.setCounter(dataOutputStream.readLong());
-      Order.setCounter(dataOutputStream.readLong());
-      dataOutputStream.close();
+      fileInputStreamStatic = new FileInputStream(staticFieldsFile);
+      objectInputStream = new ObjectInputStream(fileInputStreamData);
+      dataStorage = (DataStorage) objectInputStream.readObject();
+      dataInputStream = new DataInputStream(fileInputStreamStatic);
+      BankAccount.setCounter(dataInputStream.readLong());
+      CreditCard.setCounter(dataInputStream.readLong());
+      Order.setCounter(dataInputStream.readLong());
 
     } catch (IOException e) {
 
@@ -119,6 +128,33 @@ public class RunApp {
     } catch (ClassNotFoundException e1) {
 
       System.exit(1013);
+
+    } finally {
+
+      try {
+        fileInputStreamStatic.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      try {
+        fileInputStreamData.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      try {
+        dataInputStream.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      try {
+        objectInputStream.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
 
     }
   }

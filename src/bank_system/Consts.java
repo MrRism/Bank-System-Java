@@ -16,6 +16,7 @@ public interface Consts {
   final int MAIN_WINDOW_HEIGHT = 450;
   final int CREDIT_LIMIT = 50000;
   final int MIN_LENGTH_PASSWORD = 3;
+  final int CHARS_NUMBER_TO_WRAP = 55;
 
   final String LOGIN_WINDOW_TITLE = "Login to Bank";
 

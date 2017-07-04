@@ -150,34 +150,63 @@ public class DataStorage implements java.io.Serializable {
     * */
   public void saveToFile() {
 
-    File dataFile = new File(System.getProperty("user.home") + "\\AppData\\Local\\BankSystem",
-        "clients.dat");
+    ObjectOutputStream objectOutputStream = null;
+    FileOutputStream fileOutputStreamData = null;
+    DataOutputStream dataOutputStream = null;
+    FileOutputStream fileOutputStreamStatic = null;
+
+    File directory = new File(System.getProperty("user.home") + "\\AppData\\Local",
+        "BankSystem");
+    File dataFile = new File(directory, "clients.dat");
+    File staticFieldsFile = new File(directory, "fields.dat");
 
     try {
 
-      File directory = new File(System.getProperty("user.home") + "\\AppData\\Local",
-          "BankSystem");
       directory.mkdir();
       dataFile.createNewFile();
-      ObjectOutputStream objectOutputStream = new ObjectOutputStream(
-          new FileOutputStream(dataFile));
-      objectOutputStream.writeObject(this);
-      objectOutputStream.close();
-      File staticFieldsFile = new File(
-          System.getProperty("user.home") + "\\AppData\\Local\\BankSystem",
-          "fields.dat");
+      fileOutputStreamData = new FileOutputStream(dataFile);
       staticFieldsFile.createNewFile();
-      DataOutputStream dataOutputStream = new DataOutputStream(
-          new FileOutputStream(staticFieldsFile));
+            fileOutputStreamStatic = new FileOutputStream(staticFieldsFile);
+
+      objectOutputStream = new ObjectOutputStream(fileOutputStreamData);
+      objectOutputStream.writeObject(this);
+
+      dataOutputStream = new DataOutputStream(fileOutputStreamStatic);
       dataOutputStream.writeLong(BankAccount.getCounter());
       dataOutputStream.writeLong(CreditCard.getCounter());
       dataOutputStream.writeLong(Order.getCounter());
-      dataOutputStream.close();
 
     } catch (IOException e) {
 
       e.printStackTrace();
       System.exit(13);
+
+    } finally {
+
+      try {
+        fileOutputStreamStatic.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      try {
+        fileOutputStreamData.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      try {
+        dataOutputStream.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      try {
+        objectOutputStream.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
 
     }
   }

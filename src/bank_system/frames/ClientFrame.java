@@ -10,11 +10,15 @@ import bank_system.clients.services.CreditCard;
 import bank_system.clients.services.Order;
 import bank_system.clients.services.payment_exceptions.PaymentException;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -24,8 +28,11 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -39,7 +46,7 @@ import javax.swing.event.ListSelectionListener;
  * Created on 3/19/2017.
  *
  * @author Serhii Petrusha aka Mr_Rism
- * @since   JDK1.8
+ * @since JDK1.8
  */
 class ClientFrame extends JFrame {
 
@@ -60,6 +67,8 @@ class ClientFrame extends JFrame {
 
     this.client = client;
 
+    final int CHARS_IN_BUTTON = 20;
+
     setLayout(new BorderLayout());
 
     JPanel topPanel = new JPanel();
@@ -68,12 +77,11 @@ class ClientFrame extends JFrame {
 
     JButton logOut = new JButton("Log out");
 
-    topPanel.add(logOut );
+    topPanel.add(logOut);
     add(topPanel, BorderLayout.NORTH);
 
     JPanel creditCardsPanel = new JPanel();
-    creditCardsPanel.setLayout(new GridLayout(6, 1,20,20));
-
+    creditCardsPanel.setLayout(new GridLayout(6, 1, 20, 20));
 
     JLabel creditCardNumberLable = new JLabel("Credit card number: ");
     JLabel creditCardBalanceLable = new JLabel("Credit card balance: ");
@@ -143,8 +151,6 @@ class ClientFrame extends JFrame {
 
       }
     });
-
-
 
     creditCardsPanel.add(createCreditCardButton);
     creditCardsPanel.add(comboBoxCrediCards);
@@ -260,16 +266,17 @@ class ClientFrame extends JFrame {
                     Long.parseLong(paymentAmount.getText()),
                     Long.parseLong(paymentDestinationField.getText())
                 );
-                JOptionPane.showMessageDialog(null,"Transaction successful");
+                JOptionPane.showMessageDialog(null, "Transaction successful");
 
               } else {
 
                 client.paymentProduceToCard(
                     client.getBankAccount(
-                    comboBoxSourcePayment.getSelectedIndex() - 1 - client.getCreditCardsAmount()),
+                        comboBoxSourcePayment.getSelectedIndex() - 1 - client
+                            .getCreditCardsAmount()),
                     Long.parseLong(paymentAmount.getText()),
                     Long.parseLong(paymentDestinationField.getText()));
-                JOptionPane.showMessageDialog(null,"Transaction successful");
+                JOptionPane.showMessageDialog(null, "Transaction successful");
 
               }
 
@@ -284,7 +291,7 @@ class ClientFrame extends JFrame {
                     Long.parseLong(paymentDestinationField.getText()),
                     orderToPay);
                 orderToPay = null;
-                JOptionPane.showMessageDialog(null,"Transaction successful");
+                JOptionPane.showMessageDialog(null, "Transaction successful");
 
 
               } else {
@@ -295,7 +302,7 @@ class ClientFrame extends JFrame {
                     Long.parseLong(paymentDestinationField.getText()),
                     orderToPay);
                 orderToPay = null;
-                JOptionPane.showMessageDialog(null,"Transaction successful");
+                JOptionPane.showMessageDialog(null, "Transaction successful");
 
 
               }
@@ -346,8 +353,10 @@ class ClientFrame extends JFrame {
     JLabel orderNumberLable = new JLabel();
     centerOrdersPanel.add(orderNumberLable);
     centerOrdersPanel.add(new JLabel("Info:"));
-    JLabel orderInfoLable = new JLabel();
-    centerOrdersPanel.add(orderInfoLable);
+    JButton orderInfoButton = new JButton();
+    orderInfoButton.setBackground(new Color(0.95f, 0.95f, 0.95f));
+    orderInfoButton.setHorizontalAlignment(SwingConstants.LEFT);
+    centerOrdersPanel.add(orderInfoButton);
     centerOrdersPanel.add(new JLabel("Payment amount:"));
     JLabel orderPaymentLable = new JLabel();
     centerOrdersPanel.add(orderPaymentLable);
@@ -358,20 +367,45 @@ class ClientFrame extends JFrame {
     JButton payOrderButton = new JButton("Pay selected order");
     payOrderButton.setVisible(false);
 
+
+    orderInfoButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (ordersList.getSelectedIndex() > -1) {
+          String message = client.getOrder(ordersList.getSelectedIndex()).getInfo();
+          StringBuilder res = new StringBuilder();
+          int k = 1;
+          for (int i = 0; i < message.length(); i++) {
+            res.append(message.charAt(i));
+            if (i == CHARS_NUMBER_TO_WRAP * k) {
+              k++;
+              res.append("\r\n");
+            }
+          }
+
+          JOptionPane.showMessageDialog(null, res);
+
+        }
+      }
+    });
+
     ordersList.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
         if (ordersList.getSelectedIndex() > -1) {
 
           orderNumberLable.setText("" + client.getOrder(ordersList.getSelectedIndex()).getNumber());
-          orderInfoLable.setText("" + client.getOrder(ordersList.getSelectedIndex()).getInfo());
+          orderInfoButton.setText(
+              "" + client.getOrder(ordersList.getSelectedIndex()).getInfo().substring(0, CHARS_IN_BUTTON));
           orderPaymentLable
               .setText("" + client.getOrder(ordersList.getSelectedIndex()).getPaymentAmount());
 
           orderCreationDateLable.setText("" +
               client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getDate() + "/" +
-              (1 + client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getMonth()) + "/" +
-              (1900 + client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getYear()) + " " +
+              (1 + client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getMonth())
+              + "/" +
+              (1900 + client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getYear())
+              + " " +
               client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getHours() + ":" +
               client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getMinutes());
 
@@ -442,8 +476,7 @@ class ClientFrame extends JFrame {
 
               ordersAmountLabel.setText(String.valueOf(client.getListOfOrders().length));
 
-            }
-            else {
+            } else {
               ordersAmountLabel.setText("no");
             }
             ordersList.removeAll();
@@ -464,7 +497,8 @@ class ClientFrame extends JFrame {
         if (ordersList.getSelectedIndex() > -1) {
 
           tabbedPane.setSelectedIndex(2);
-          paymentAmount.setText("" + client.getOrder(ordersList.getSelectedIndex()).getPaymentAmount());
+          paymentAmount
+              .setText("" + client.getOrder(ordersList.getSelectedIndex()).getPaymentAmount());
           paymentAmount.setEnabled(false);
           paymentDestinationField.setText(
               "" + client.getOrder(ordersList.getSelectedIndex()).getPaymentDestinationNumber());
@@ -477,7 +511,7 @@ class ClientFrame extends JFrame {
           payOrderButton.setVisible(false);
           tabbedPane.setEnabled(false);
           cancelOrderButton.setVisible(true);
-          orderInfoLable.setText("");
+          orderInfoButton.setText("");
           orderNumberLable.setText("");
           orderPaymentLable.setText("");
           orderCreationDateLable.setText("");

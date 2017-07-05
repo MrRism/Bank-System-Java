@@ -27,8 +27,6 @@ import javax.swing.WindowConstants;
  * @since JDK1.8
  */
 
-//Robert martin chistiy kod
-// kent back shablony korporativnih prilozheniy
 public class LoginFrame extends JFrame {
 
   public LoginFrame() {
@@ -83,7 +81,6 @@ public class LoginFrame extends JFrame {
 
         if (isUserRegistered) {
 
-          //rework↓
           boolean isEnteredUserPaswordCorrect = dataStorage.getClients()
               .getUserByName(nameField.getText()).getPassword().
                   equals(new String(passwordField.getPassword()));
@@ -132,8 +129,7 @@ public class LoginFrame extends JFrame {
             dataStorage.getClients().addClient(
                 new Client(
                     nameField.getText(),
-                    passwordField.getText(),
-                    dataStorage.getClients()
+                    new String(passwordField.getPassword())
                 ));
             JOptionPane.showMessageDialog(null, "Registration complete");
             dataStorage.saveToFile();

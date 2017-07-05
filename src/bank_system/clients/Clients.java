@@ -3,6 +3,7 @@ package bank_system.clients;
 
 import bank_system.clients.services.BankAccount;
 import bank_system.clients.services.CreditCard;
+import bank_system.clients.services.MoneyHolder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -15,7 +16,7 @@ import java.util.HashMap;
  * @since  JDK1.8
  */
 public class Clients implements java.io.Serializable{
-  HashMap<String, Client> users = new HashMap<String,Client>();
+  HashMap<String, Client> users = new HashMap<>();
 
 
 
@@ -48,52 +49,46 @@ public class Clients implements java.io.Serializable{
   }
 
   /*
-  * Search for credit card with same number, and returns it<p>
+  * Search for objects of MoneyHolder with same number, and returns it<p>
   *
-  * @param Number of card to search.
+  * @param Number of objects to search.
+  * @param isDepositToCard
   * @return Credit card if it was found, null either.
   * */
-  public CreditCard getCardByNumber(long cardNumber){
+  public MoneyHolder getMoneyHolderByNumber(long Number, Boolean isDepositToCard){
 
+    if (isDepositToCard){
 
-    for (Client client: users.values()){
+      for (Client client: users.values()){
 
-      for (int i = 0 ; i<client.getCreditCardsAmount(); i++){
+        for (int i = 0 ; i<client.getCreditCardsAmount(); i++){
 
-        if (client.getCreditCard(i).getId() == cardNumber){
+          if (client.getCreditCard(i).getId() == Number){
 
-          return client.getCreditCard(i);
+            return client.getCreditCard(i);
 
+          }
         }
       }
+    } else {
+      for (Client client: users.values()){
+
+        for (int i = 0 ; i<client.getBankAccountsAmount(); i++){
+
+          if (client.getBankAccount(i).getId() == Number){
+
+            return client.getBankAccount(i);
+
+          }
+        }
+      }
+
     }
 
     return null;
 
   }
-  /*
-* Search for bank account with same number, and returns it<p>
-*
-* @param Number of bank account to search.
-* @return Bank account if it was found, null either.
-* */
-  public BankAccount getAccount(long accountNumber){
 
-    for (Client client: users.values()){
-
-      for (int i = 0 ; i<client.getBankAccountsAmount(); i++){
-
-        if (client.getBankAccount(i).getId() == accountNumber){
-
-          return client.getBankAccount(i);
-
-        }
-      }
-    }
-
-    return null;
-
-  }
   /*
     * Generate strings with information about clients.
     *

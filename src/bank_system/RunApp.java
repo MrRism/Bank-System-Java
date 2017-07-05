@@ -15,7 +15,7 @@ import java.io.ObjectInputStream;
 
 
 /**
- * Class provide application start, load data from file.
+ * Class provide application start, data load from file.
  *
  * Created on 3/27/2017.
  *
@@ -48,8 +48,8 @@ import java.io.ObjectInputStream;
  * Future improvements:
  * add support of float
  * add scrolls to lists
- * make currencies
- * history of payments
+ * make currencies?
+ * history of payments?
  * add limitation by size to all arrays ,fields, counters
  * MySQL
  * ...
@@ -132,24 +132,28 @@ public class RunApp {
     } finally {
 
       try {
+        if (fileInputStreamStatic != null)
         fileInputStreamStatic.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
 
       try {
+        if (fileInputStreamData != null)
         fileInputStreamData.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
 
       try {
+        if (dataInputStream != null)
         dataInputStream.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
 
       try {
+        if (objectInputStream != null)
         objectInputStream.close();
       } catch (IOException e) {
         e.printStackTrace();

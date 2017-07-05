@@ -9,6 +9,8 @@ import bank_system.clients.services.MoneyHolder;
 import bank_system.clients.services.Order;
 import bank_system.clients.services.Orders;
 import bank_system.clients.services.payment_exceptions.PaymentException;
+import com.sun.corba.se.spi.ior.IdentifiableFactory;
+import com.sun.org.apache.bcel.internal.generic.I2F;
 import java.util.ArrayList;
 
 
@@ -34,21 +36,17 @@ public class Client implements java.io.Serializable {
 
   private Orders orders;
 
-  private Clients owner;
-
   private boolean isAdmin;
 
 
   public Client() {
-    this("", "", false,null);
+    this("", "", false);
+  }
+  public Client(String name, String password) {
+    this(name, password, false);
   }
 
-  public Client(String name, String password, Clients owner) {
-    this(name, password, false, owner);
-  }
-
-
-  public Client(String name, String password, Boolean isAdmin, Clients owner) {
+  public Client(String name, String password, Boolean isAdmin) {
 
     this.name = name + "";
     this.password = password + "";
@@ -56,7 +54,7 @@ public class Client implements java.io.Serializable {
     creditCards = new CreditCards();
     bankAccounts = new BankAccounts();
     orders = new Orders();
-    this.owner = owner;
+
 
   }
 
@@ -172,7 +170,9 @@ public class Client implements java.io.Serializable {
 
   }
 
-  private void removeCompleteOrders(){
+  /*Removes orders with raised flag isPayed
+    * */
+  private void removeCompleteOrders() {
 
     orders.removeCompleteOrders();
   }
@@ -221,84 +221,48 @@ public class Client implements java.io.Serializable {
   }
 
 
-  /*Produce payment to credit cart
-      * @param withdraw object must be credit card or bank account
+  /*Produce payment
+      * @param withdraw object must implement <Code>MoneyHolder</Code>
       * @param amount of money to pay
-      * @param payment destination credit card number
+      * @param depositObject object must implement <Code>MoneyHolder</Code>
+      * @param order may be order to pay. Null if it simple transaction.
       * @throws Payment exception
       * */
-  public void paymentProduceToCard(MoneyHolder withdrawObject, long amount, long cardNumber)
-      throws PaymentException {
-    if (owner != null) {
-
-      CreditCard depositCard = owner.getCardByNumber(cardNumber);
-
-
-      if (depositCard != null) {
-
-        if (depositCard.equals(withdrawObject)) throw new PaymentException("Error: same destination as source");
-
-        withdrawObject.withdraw(amount);
-        depositCard.deposit(amount);
-
-
-      } else {
-
-        withdrawObject.withdraw(amount);
-
-
-      }
-    }
-
-  }
-
-
-
-  /*Produce payment to bank account
-      * @param withdraw object must be credit card or bank account
-      * @param amount of money to pay
-      * @param payment destination bank account number
-      * @throws Payment exception
-      * */
-  public void paymentProduceToAccount(MoneyHolder withdrawObject, long amount, long accountNumber,
+  public void paymentProduce(MoneyHolder withdrawObject, long amount, MoneyHolder depositObject,
       Order order)
       throws PaymentException {
-    if (owner != null) {
 
-      BankAccount depositAccount = owner.getAccount(accountNumber);
+    if (withdrawObject != null)
 
-      if (depositAccount != null) {
+    {
+      if (depositObject != null) {
 
-        if (depositAccount.equals(withdrawObject)) throw new PaymentException("Error: same destination as source");
-
-        withdrawObject.withdraw(amount);
-        depositAccount.deposit(amount);
-
-        if (order != null) {
-
-          order.setPaid(true);
-
+        if (depositObject.equals(withdrawObject)) {
+          throw new PaymentException("Error: same destination as source");
         }
 
+        withdrawObject.withdraw(amount);
+        depositObject.deposit(amount);
+        setOrderPayed(order);
 
       } else {
 
+        //Simulation payment to other bank
         withdrawObject.withdraw(amount);
+        setOrderPayed(order);
 
-        //Some method of deposit to other bank card.
-
-        if (order != null) {
-
-          order.setPaid(true);
-
-        }
 
       }
     }
-
-
   }
-// no owner in toString coz stackOverFlow
+
+  private void setOrderPayed(Order payedOrder) {
+    if (payedOrder != null) {
+      payedOrder.setPaid(true);
+    }
+  }
+
+
   @Override
   public String
   toString() {
@@ -343,7 +307,7 @@ public class Client implements java.io.Serializable {
     return orders != null ? orders.equals(client.orders) : client.orders == null;
   }
 
-  // no owner in hashCode coz stackOverFlow
+
   @Override
   public int hashCode() {
     int result = name != null ? name.hashCode() : 0;

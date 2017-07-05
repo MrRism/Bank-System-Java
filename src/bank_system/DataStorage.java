@@ -32,7 +32,7 @@ public class DataStorage implements java.io.Serializable {
 
     if (clients.getListOfUsers().length < 1) {
 
-      clients.addClient(new Client("admin", "admin", true, clients));
+      clients.addClient(new Client("admin", "admin", true));
 
     }
 
@@ -72,30 +72,6 @@ public class DataStorage implements java.io.Serializable {
   public CreditCard getCardWithNegBalance(int index) {
 
     return cardsWithNegativeBalance.getCard(index);
-
-  }
-
-  /*
-  * Check for credit card in list of card with negative balance<p>
-  *
-  * @param <code>CreditCard</code> to search.
-  * @return true if present<p>
-  *   false if missing
-  *
-  * */
-  public boolean isCardInList(CreditCard creditCard) {
-
-    for (int i = 0; i < cardsWithNegativeBalance.getSize(); i++) {
-
-      if (cardsWithNegativeBalance.getCard(i).equals(creditCard)) {
-
-        return true;
-
-      }
-
-    }
-
-    return false;
 
   }
 
@@ -184,24 +160,28 @@ public class DataStorage implements java.io.Serializable {
     } finally {
 
       try {
+        if (fileOutputStreamStatic != null)
         fileOutputStreamStatic.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
 
       try {
+        if (fileOutputStreamData != null)
         fileOutputStreamData.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
 
       try {
+        if (dataOutputStream != null)
         dataOutputStream.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
 
       try {
+        if (objectOutputStream != null)
         objectOutputStream.close();
       } catch (IOException e) {
         e.printStackTrace();

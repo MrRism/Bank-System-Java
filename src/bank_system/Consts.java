@@ -10,14 +10,14 @@ package bank_system;
  */
 public interface Consts {
 
-  final int LOGIN_FORM_WIDTH = 350;
-  final int LOGIN_FORM_HEIGHT = 140;
-  final int MAIN_WINDOW_WIDTH = 600;
-  final int MAIN_WINDOW_HEIGHT = 450;
-  final int CREDIT_LIMIT = 50000;
-  final int MIN_LENGTH_PASSWORD = 3;
-  final int CHARS_NUMBER_TO_WRAP = 55;
+  int LOGIN_FORM_WIDTH = 350;
+  int LOGIN_FORM_HEIGHT = 140;
+  int MAIN_WINDOW_WIDTH = 600;
+  int MAIN_WINDOW_HEIGHT = 450;
+  int CREDIT_LIMIT = 50000;
+  int MIN_LENGTH_PASSWORD = 3;
+  int CHARS_NUMBER_TO_WRAP = 55;
 
-  final String LOGIN_WINDOW_TITLE = "Login to Bank";
+  String LOGIN_WINDOW_TITLE = "Login to Bank";
 
 }

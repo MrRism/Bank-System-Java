@@ -12,13 +12,9 @@ import bank_system.clients.services.payment_exceptions.PaymentException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -28,9 +24,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
@@ -257,57 +251,31 @@ class ClientFrame extends JFrame {
         if (comboBoxSourcePayment.getSelectedIndex() > 0) {
           try {
 
-            if (cardRB.isSelected()) {
+
 
               if (comboBoxSourcePayment.getSelectedIndex() - 1 < client.getCreditCardsAmount()) {
-
-                client.paymentProduceToCard(
+                client.paymentProduce(
                     client.getCreditCard(comboBoxSourcePayment.getSelectedIndex() - 1),
                     Long.parseLong(paymentAmount.getText()),
-                    Long.parseLong(paymentDestinationField.getText())
+                    dataStorage.getClients().getMoneyHolderByNumber(Long.parseLong(paymentDestinationField.getText()),cardRB.isSelected()),
+                    orderToPay
+
                 );
+
                 JOptionPane.showMessageDialog(null, "Transaction successful");
 
               } else {
 
-                client.paymentProduceToCard(
-                    client.getBankAccount(
-                        comboBoxSourcePayment.getSelectedIndex() - 1 - client
-                            .getCreditCardsAmount()),
+                client.paymentProduce(
+                    client.getBankAccount(comboBoxSourcePayment.getSelectedIndex() - 1),
                     Long.parseLong(paymentAmount.getText()),
-                    Long.parseLong(paymentDestinationField.getText()));
+                    dataStorage.getClients().getMoneyHolderByNumber(Long.parseLong(paymentDestinationField.getText()),cardRB.isSelected()),
+                    orderToPay
+                );
+
                 JOptionPane.showMessageDialog(null, "Transaction successful");
 
               }
-
-
-            } else {
-
-              if (comboBoxSourcePayment.getSelectedIndex() - 1 < client.getCreditCardsAmount()) {
-
-                client.paymentProduceToAccount(
-                    client.getCreditCard(comboBoxSourcePayment.getSelectedIndex() - 1),
-                    Long.parseLong(paymentAmount.getText()),
-                    Long.parseLong(paymentDestinationField.getText()),
-                    orderToPay);
-                orderToPay = null;
-                JOptionPane.showMessageDialog(null, "Transaction successful");
-
-
-              } else {
-
-                client.paymentProduceToAccount(client.getBankAccount(
-                    comboBoxSourcePayment.getSelectedIndex() - 1 - client.getCreditCardsAmount()),
-                    Long.parseLong(paymentAmount.getText()),
-                    Long.parseLong(paymentDestinationField.getText()),
-                    orderToPay);
-                orderToPay = null;
-                JOptionPane.showMessageDialog(null, "Transaction successful");
-
-
-              }
-
-            }
 
             paymentAmount.setText("");
             paymentDestinationField.setText("");
@@ -394,20 +362,24 @@ class ClientFrame extends JFrame {
       public void valueChanged(ListSelectionEvent e) {
         if (ordersList.getSelectedIndex() > -1) {
 
-          orderNumberLable.setText("" + client.getOrder(ordersList.getSelectedIndex()).getNumber());
+          Order order = client.getOrder(ordersList.getSelectedIndex());
+
+          orderNumberLable.setText("" + order.getNumber());
+          int charsInButton = CHARS_IN_BUTTON;
+          if (order.getInfo().length()<CHARS_IN_BUTTON) charsInButton = order.getInfo().length();
           orderInfoButton.setText(
-              "" + client.getOrder(ordersList.getSelectedIndex()).getInfo().substring(0, CHARS_IN_BUTTON));
+              "" + order.getInfo().substring(0, charsInButton));
           orderPaymentLable
-              .setText("" + client.getOrder(ordersList.getSelectedIndex()).getPaymentAmount());
+              .setText("" + order.getPaymentAmount());
 
           orderCreationDateLable.setText("" +
-              client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getDate() + "/" +
-              (1 + client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getMonth())
+              order.getCreationDate().getDate() + "/" +
+              (1 + order.getCreationDate().getMonth())
               + "/" +
-              (1900 + client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getYear())
+              (1900 + order.getCreationDate().getYear())
               + " " +
-              client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getHours() + ":" +
-              client.getOrder(ordersList.getSelectedIndex()).getCreationDate().getMinutes());
+              order.getCreationDate().getHours() + ":" +
+              order.getCreationDate().getMinutes());
 
           payOrderButton.setVisible(true);
         }

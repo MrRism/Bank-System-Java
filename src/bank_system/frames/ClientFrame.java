@@ -4,9 +4,9 @@ import static bank_system.Consts.*;
 
 import bank_system.DataStorage;
 import bank_system.clients.Client;
-
 import bank_system.clients.services.BankAccount;
 import bank_system.clients.services.CreditCard;
+import bank_system.clients.services.MoneyHolder;
 import bank_system.clients.services.Order;
 import bank_system.clients.services.payment_exceptions.PaymentException;
 import java.awt.BorderLayout;
@@ -15,6 +15,12 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -35,7 +41,7 @@ import javax.swing.event.ListSelectionListener;
 
 
 /**
- * Frame with all client oriented magic. It's kinda cool when you client is only you and your mom.
+ * Frame with all client oriented magic. It's kinda cool... not really.
  *
  * Created on 3/19/2017.
  *
@@ -43,23 +49,20 @@ import javax.swing.event.ListSelectionListener;
  * @since JDK1.8
  */
 class ClientFrame extends JFrame {
-
-  Order orderToPay = null;
-  private Client client;
-  private JComboBox<String> comboBoxAccounts;
-  private JComboBox<String> comboBoxCrediCards;
-  private JComboBox<String> comboBoxSourcePayment;
-
-
-  ClientFrame() {
-
-  }
-
+  /**
+   * This private field is for order-payment functionality.
+   */
+  private Order orderToPay;
+  /**
+   * Creates a <code>ClientFrame</code>.
+   *
+   * @param dataStorage the <code>DataStorage</code> that provides the access to save method.
+   * @param client the <code>Client</code> that provides the current user.
+   *
+   */
   ClientFrame(DataStorage dataStorage, Client client) {
 
     super(client.getName());
-
-    this.client = client;
 
     final int CHARS_IN_BUTTON = 20;
 
@@ -67,7 +70,7 @@ class ClientFrame extends JFrame {
 
     JPanel topPanel = new JPanel();
 
-    topPanel.add(new JLabel("Curent user: " + client.getName()));
+    topPanel.add(new JLabel("Current user: " + client.getName()));
 
     JButton logOut = new JButton("Log out");
 
@@ -77,6 +80,13 @@ class ClientFrame extends JFrame {
     JPanel creditCardsPanel = new JPanel();
     creditCardsPanel.setLayout(new GridLayout(6, 1, 20, 20));
 
+    JComboBox comboBoxAccounts;
+    comboBoxAccounts = new JComboBox<>();
+    JComboBox comboBoxCrediCards;
+    comboBoxCrediCards = new JComboBox<>();
+    JComboBox comboBoxSourcePayment;
+    comboBoxSourcePayment = new JComboBox<>();
+
     JLabel creditCardNumberLable = new JLabel("Credit card number: ");
     JLabel creditCardBalanceLable = new JLabel("Credit card balance: ");
     JLabel creditCardLimitLable = new JLabel("Credit card limit: ");
@@ -84,51 +94,56 @@ class ClientFrame extends JFrame {
     blockCreditCardButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (comboBoxCrediCards.getSelectedIndex() > 0) {
-          client.blockCard(comboBoxCrediCards.getSelectedIndex() - 1);
+        try {
+          MoneyHolderToComboBoxAdapter adapter = (MoneyHolderToComboBoxAdapter) comboBoxCrediCards
+              .getSelectedItem();
+          CreditCard creditCard = (CreditCard) adapter.getMoneyHolder();
+          creditCard.setBlocked(true);
           dataStorage.saveToFile();
-          refreshCardsComboBox();
+          refreshComboBox(comboBoxCrediCards, client.getListOfCreditCards());
           blockCreditCardButton.setVisible(false);
           creditCardNumberLable.setText("Credit card number: ");
           creditCardBalanceLable.setText("Credit card balance: ");
           creditCardLimitLable.setText("Credit card limit: ");
+        } catch (ClassCastException e1) {
+          JOptionPane.showMessageDialog(null, "Select a card");
         }
+
       }
     });
 
     blockCreditCardButton.setVisible(false);
 
-    comboBoxCrediCards = new JComboBox<>();
-    refreshCardsComboBox();
+    refreshComboBox(comboBoxCrediCards, client.getListOfCreditCards());
 
-    comboBoxCrediCards.addActionListener(new ActionListener() {
+    comboBoxCrediCards.addItemListener(new ItemListener() {
       @Override
-      public void actionPerformed(ActionEvent e) {
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          try {
+            MoneyHolderToComboBoxAdapter adapter = (MoneyHolderToComboBoxAdapter) comboBoxCrediCards
+                .getSelectedItem();
+            CreditCard creditCard = (CreditCard) adapter.getMoneyHolder();
+            creditCardNumberLable.setText("Credit card number: " +
+                creditCard.getId());
+            creditCardBalanceLable.setText("Credit card balance: " +
+                creditCard.getBalance());
 
-        if (comboBoxCrediCards.getSelectedIndex() > 0) {
+            if (!creditCard.isBlocked()) {
+              blockCreditCardButton.setVisible(true);
+              creditCardLimitLable.setText("Credit card limit: " +
+                  creditCard.getCreditlimit());
+            } else {
+              creditCardLimitLable.setText("CARD IS BLOCKED ");
+              blockCreditCardButton.setVisible(false);
+            }
 
-          creditCardNumberLable.setText("Credit card number: " +
-              client.getCreditCard(comboBoxCrediCards.getSelectedIndex() - 1).getId());
-          creditCardBalanceLable.setText("Credit card balance: " +
-              client.getCreditCard(comboBoxCrediCards.getSelectedIndex() - 1).getBalance());
-
-          if (!client.getCreditCard(comboBoxCrediCards.getSelectedIndex() - 1).isBlocked()) {
-            blockCreditCardButton.setVisible(true);
-            creditCardLimitLable.setText("Credit card limit: " +
-                client.getCreditCard(comboBoxCrediCards.getSelectedIndex() - 1).getCreditlimit());
-          } else {
-            creditCardLimitLable.setText("CARD_IS_BLOCKED ");
+          } catch (ClassCastException e1) {
             blockCreditCardButton.setVisible(false);
-
-
+            creditCardBalanceLable.setText("Credit card balance: ");
+            creditCardNumberLable.setText("Credit card number: ");
+            creditCardLimitLable.setText("Credit card limit: ");
           }
-
-
-        } else {
-          blockCreditCardButton.setVisible(false);
-          creditCardBalanceLable.setText("Credit card balance: ");
-          creditCardNumberLable.setText("Credit card number: ");
-          creditCardLimitLable.setText("Credit card limit: ");
         }
       }
     });
@@ -140,7 +155,7 @@ class ClientFrame extends JFrame {
 
         client.addCard(new CreditCard(dataStorage));
         dataStorage.saveToFile();
-        refreshCardsComboBox();
+        refreshComboBox(comboBoxCrediCards, client.getListOfCreditCards());
 
 
       }
@@ -162,37 +177,48 @@ class ClientFrame extends JFrame {
     annulAccountButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (comboBoxAccounts.getSelectedIndex() > 0) {
-          client.annulAccount(comboBoxAccounts.getSelectedIndex() - 1);
+
+        try {
+          MoneyHolderToComboBoxAdapter adapter = (MoneyHolderToComboBoxAdapter) comboBoxCrediCards
+              .getSelectedItem();
+          BankAccount bankAccount = (BankAccount) adapter.getMoneyHolder();
+          client.annulAccount(bankAccount.getId());
           dataStorage.saveToFile();
-          refreshAccountsComboBox();
+          refreshComboBox(comboBoxAccounts, client.getListOfBankAccounts());
           annulAccountButton.setVisible(false);
           bankAccountBalanceLable.setText("Bank account balance: ");
           bankAccountNumberLable.setText("Bank account number: ");
+        } catch (ClassCastException e1) {
+          JOptionPane.showMessageDialog(null, "Select a account");
         }
+
+
       }
     });
 
     annulAccountButton.setVisible(false);
 
-    comboBoxAccounts = new JComboBox<>();
-    refreshAccountsComboBox();
+    refreshComboBox(comboBoxAccounts, client.getListOfBankAccounts());
 
-    comboBoxAccounts.addActionListener(new ActionListener() {
+    comboBoxAccounts.addItemListener(new ItemListener() {
       @Override
-      public void actionPerformed(ActionEvent e) {
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          try {
+            MoneyHolderToComboBoxAdapter adapter = (MoneyHolderToComboBoxAdapter) comboBoxAccounts
+                .getSelectedItem();
+            BankAccount bankAccount = (BankAccount) adapter.getMoneyHolder();
+            bankAccountNumberLable.setText("Bank account number: " +
+                bankAccount.getId());
+            bankAccountBalanceLable.setText("Bank account balance: " +
+                bankAccount.getBalance());
+            annulAccountButton.setVisible(true);
 
-        if (comboBoxAccounts.getSelectedIndex() > 0) {
-
-          bankAccountNumberLable.setText("Bank account number: " +
-              client.getBankAccount(comboBoxAccounts.getSelectedIndex() - 1).getId());
-          bankAccountBalanceLable.setText("Bank account balance: " +
-              client.getBankAccount(comboBoxAccounts.getSelectedIndex() - 1).getBalance());
-          annulAccountButton.setVisible(true);
-        } else {
-          annulAccountButton.setVisible(false);
-          bankAccountBalanceLable.setText("Bank account balance: ");
-          bankAccountNumberLable.setText("Bank account number: ");
+          } catch (ClassCastException e1) {
+            annulAccountButton.setVisible(false);
+            bankAccountBalanceLable.setText("Bank account balance: ");
+            bankAccountNumberLable.setText("Bank account number: ");
+          }
         }
       }
     });
@@ -203,7 +229,7 @@ class ClientFrame extends JFrame {
       public void actionPerformed(ActionEvent e) {
 
         client.addAccount(new BankAccount(dataStorage));
-        refreshAccountsComboBox();
+        refreshComboBox(comboBoxAccounts, client.getListOfBankAccounts());
         dataStorage.saveToFile();
 
 
@@ -219,8 +245,13 @@ class ClientFrame extends JFrame {
 
     JPanel paymentsPanel = new JPanel();
 
-    comboBoxSourcePayment = new JComboBox<>();
-    refreshFromPaymentsComboBox();
+    refreshComboBox(comboBoxSourcePayment,
+        Stream
+            .concat(client.getListOfBankAccounts().stream(),
+                client.getListOfCreditCards().stream())
+            .collect(Collectors.toList())
+    );
+
     paymentsPanel.add(new JLabel("Pay from:"));
     paymentsPanel.add(comboBoxSourcePayment);
     paymentsPanel.add(new JLabel("Amount:"));
@@ -233,8 +264,8 @@ class ClientFrame extends JFrame {
     paymentsPanel.add(cardRB);
     JRadioButton accountRB = new JRadioButton("Account");
     paymentsPanel.add(accountRB);
-    JButton paymentProduce = new JButton("Pay!");
-    paymentsPanel.add(paymentProduce);
+    JButton paymentProduceButton = new JButton("Pay!");
+    paymentsPanel.add(paymentProduceButton);
     JButton cancelOrderButton = new JButton("Cancel");
     cancelOrderButton.setVisible(false);
     paymentsPanel.add(cancelOrderButton);
@@ -244,60 +275,50 @@ class ClientFrame extends JFrame {
     group.add(accountRB);
     cardRB.setSelected(true);
 
-    paymentProduce.addActionListener(new ActionListener() {
+    paymentProduceButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
 
-        if (comboBoxSourcePayment.getSelectedIndex() > 0) {
-          try {
+        try {
+          MoneyHolderToComboBoxAdapter adapter = (MoneyHolderToComboBoxAdapter) comboBoxSourcePayment
+              .getSelectedItem();
+          MoneyHolder paymentSource = (MoneyHolder) adapter.getMoneyHolder();
+
+          client.paymentProduce(
+              paymentSource,
+              Long.parseLong(paymentAmount.getText()),
+              dataStorage.getClients()
+                  .getMoneyHolderByNumber(Long.parseLong(paymentDestinationField.getText()),
+                      cardRB.isSelected()),
+              orderToPay
+
+          );
+
+          paymentAmount.setText("");
+          paymentDestinationField.setText("");
+
+          comboBoxSourcePayment.setSelectedIndex(0);
+          cancelOrderButton.doClick();
+          refreshComboBox(comboBoxSourcePayment,
+              Stream.concat(
+                  client.getListOfBankAccounts().stream(),
+                  client.getListOfCreditCards().stream()
+              ).collect(Collectors.toList())
+          );
+
+          dataStorage.saveToFile();
 
 
+        } catch (PaymentException e1) {
 
-              if (comboBoxSourcePayment.getSelectedIndex() - 1 < client.getCreditCardsAmount()) {
-                client.paymentProduce(
-                    client.getCreditCard(comboBoxSourcePayment.getSelectedIndex() - 1),
-                    Long.parseLong(paymentAmount.getText()),
-                    dataStorage.getClients().getMoneyHolderByNumber(Long.parseLong(paymentDestinationField.getText()),cardRB.isSelected()),
-                    orderToPay
+          JOptionPane.showMessageDialog(null, e1.getMessage());
 
-                );
-
-                JOptionPane.showMessageDialog(null, "Transaction successful");
-
-              } else {
-
-                client.paymentProduce(
-                    client.getBankAccount(comboBoxSourcePayment.getSelectedIndex() - 1),
-                    Long.parseLong(paymentAmount.getText()),
-                    dataStorage.getClients().getMoneyHolderByNumber(Long.parseLong(paymentDestinationField.getText()),cardRB.isSelected()),
-                    orderToPay
-                );
-
-                JOptionPane.showMessageDialog(null, "Transaction successful");
-
-              }
-
-            paymentAmount.setText("");
-            paymentDestinationField.setText("");
-
-            comboBoxSourcePayment.setSelectedIndex(0);
-            cancelOrderButton.doClick();
-            refreshFromPaymentsComboBox();
-
-            dataStorage.saveToFile();
-
-
-          } catch (PaymentException e1) {
-
-            JOptionPane.showMessageDialog(null, e1.getMessage());
-
-          }
-
-        } else {
+        } catch (ClassCastException e2) {
 
           JOptionPane.showMessageDialog(null, "Choose card or account");
 
         }
+
 
       }
     });
@@ -335,7 +356,6 @@ class ClientFrame extends JFrame {
     JButton payOrderButton = new JButton("Pay selected order");
     payOrderButton.setVisible(false);
 
-
     orderInfoButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -366,7 +386,9 @@ class ClientFrame extends JFrame {
 
           orderNumberLable.setText("" + order.getNumber());
           int charsInButton = CHARS_IN_BUTTON;
-          if (order.getInfo().length()<CHARS_IN_BUTTON) charsInButton = order.getInfo().length();
+          if (order.getInfo().length() < CHARS_IN_BUTTON) {
+            charsInButton = order.getInfo().length();
+          }
           orderInfoButton.setText(
               "" + order.getInfo().substring(0, charsInButton));
           orderPaymentLable
@@ -426,7 +448,7 @@ class ClientFrame extends JFrame {
           case 0:
 
             int temp = comboBoxCrediCards.getSelectedIndex();
-            refreshCardsComboBox();
+            refreshComboBox(comboBoxCrediCards, client.getListOfCreditCards());
             comboBoxCrediCards.setSelectedIndex(temp);
 
             break;
@@ -434,12 +456,17 @@ class ClientFrame extends JFrame {
           case 1:
 
             int temp1 = comboBoxAccounts.getSelectedIndex();
-            refreshAccountsComboBox();
+            refreshComboBox(comboBoxAccounts, client.getListOfBankAccounts());
             comboBoxAccounts.setSelectedIndex(temp1);
             break;
 
           case 2:
-            refreshFromPaymentsComboBox();
+            refreshComboBox(comboBoxSourcePayment,
+                Stream
+                    .concat(client.getListOfBankAccounts().stream(),
+                        client.getListOfCreditCards().stream())
+                    .collect(Collectors.toList())
+            );
             break;
 
           case 3:
@@ -511,58 +538,24 @@ class ClientFrame extends JFrame {
 
   }
 
-  /*Update items in <code>comboBoxAccounts</code>. First item always "Choose account"*/
+  /**
+   * Method remove all items in comboBox and populate it with <code>MoneyHolder</code>s from collection.
+   *
+   * @param comboBox the <code>JComboBox</code> to refresh.
+   * @param collection the <code>Collection</code> source of items for comboBox.
+   *
+   */
+  private void refreshComboBox(JComboBox<Object> comboBox, Collection<MoneyHolder> collection) {
 
-  private void refreshAccountsComboBox() {
+    if (comboBox != null) {
 
-    if (comboBoxAccounts != null) {
+      comboBox.removeAllItems();
+      comboBox.addItem("Choose ");
+      Iterator<MoneyHolder> iterator = collection.iterator();
 
-      comboBoxAccounts.removeAllItems();
-      comboBoxAccounts.addItem("Choose account");
+      while (iterator.hasNext()) {
 
-      for (String s : client.getListOfBankAccounts()) {
-
-        comboBoxAccounts.addItem(s);
-
-      }
-    }
-  }
-
-  /*Update items in <code>comboBoxCrediCards</code>. First item always "Choose Card"*/
-  private void refreshCardsComboBox() {
-
-    if (comboBoxCrediCards != null) {
-
-      comboBoxCrediCards.removeAllItems();
-      comboBoxCrediCards.addItem("Choose Card");
-
-      for (String s : client.getListOfCreditCards()) {
-
-        comboBoxCrediCards.addItem(s);
-
-      }
-    }
-  }
-
-  /*Update items in <code>comboBoxSourcePayment</code>. First item always "Choose source"<p>
-  * All credit cards items have prefix "Card ", bank accounts items "Account ".
-  * */
-  private void refreshFromPaymentsComboBox() {
-
-    if (comboBoxSourcePayment != null) {
-
-      comboBoxSourcePayment.removeAllItems();
-      comboBoxSourcePayment.addItem("Choose source");
-
-      for (String s : client.getListOfCreditCards()) {
-
-        comboBoxSourcePayment.addItem("Card " + s);
-
-      }
-
-      for (String s : client.getListOfBankAccounts()) {
-
-        comboBoxSourcePayment.addItem("Account " + s);
+        comboBox.addItem(new MoneyHolderToComboBoxAdapter(iterator.next()));
 
       }
     }
@@ -572,10 +565,6 @@ class ClientFrame extends JFrame {
   public String toString() {
     return "ClientFrame{" +
         "orderToPay=" + orderToPay +
-        ", client=" + client +
-        ", comboBoxAccounts=" + comboBoxAccounts +
-        ", comboBoxCrediCards=" + comboBoxCrediCards +
-        ", comboBoxSourcePayment=" + comboBoxSourcePayment +
         "} " + super.toString();
   }
 
@@ -590,36 +579,39 @@ class ClientFrame extends JFrame {
 
     ClientFrame that = (ClientFrame) o;
 
-    if (orderToPay != null ? !orderToPay.equals(that.orderToPay) : that.orderToPay != null) {
-      return false;
-    }
-    if (client != null ? !client.equals(that.client) : that.client != null) {
-      return false;
-    }
-    if (comboBoxAccounts != null ? !comboBoxAccounts.equals(that.comboBoxAccounts)
-        : that.comboBoxAccounts != null) {
-      return false;
-    }
-    if (comboBoxCrediCards != null ? !comboBoxCrediCards.equals(that.comboBoxCrediCards)
-        : that.comboBoxCrediCards != null) {
-      return false;
-    }
-    return comboBoxSourcePayment != null ? comboBoxSourcePayment.equals(that.comboBoxSourcePayment)
-        : that.comboBoxSourcePayment == null;
+    return orderToPay != null ? orderToPay.equals(that.orderToPay) : that.orderToPay == null;
   }
 
   @Override
   public int hashCode() {
-    int result = orderToPay != null ? orderToPay.hashCode() : 0;
-    result = 31 * result + (client != null ? client.hashCode() : 0);
-    result = 31 * result + (comboBoxAccounts != null ? comboBoxAccounts.hashCode() : 0);
-    result = 31 * result + (comboBoxCrediCards != null ? comboBoxCrediCards.hashCode() : 0);
-    result = 31 * result + (comboBoxSourcePayment != null ? comboBoxSourcePayment.hashCode() : 0);
-    return result;
+    return orderToPay != null ? orderToPay.hashCode() : 0;
   }
 
   @Override
   public Object clone() throws CloneNotSupportedException {
     return super.clone();
+  }
+  /**
+   * Provide a <code>MoneyHolder></code>adaptation for population a JComboBox. It's overrides toString().
+   *
+   */
+  private class MoneyHolderToComboBoxAdapter {
+
+    MoneyHolder moneyHolder = null;
+
+    MoneyHolderToComboBoxAdapter(MoneyHolder moneyHolder) {
+      this.moneyHolder = moneyHolder;
+    }
+
+    MoneyHolder getMoneyHolder() {
+      return moneyHolder;
+    }
+
+    @Override
+    public String toString() {
+      return moneyHolder.getId() +
+          " (" + moneyHolder.getBalance() +
+          ')';
+    }
   }
 }

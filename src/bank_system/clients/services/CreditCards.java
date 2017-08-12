@@ -1,7 +1,8 @@
 package bank_system.clients.services;
 
-
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -10,61 +11,50 @@ import java.util.ArrayList;
  * Created on 3/16/2017.
  *
  * @author Serhii Petrusha aka Mr_Rism
- * @since   JDK1.8
+ * @since JDK1.8
  */
-public class CreditCards implements java.io.Serializable{
+public class CreditCards implements java.io.Serializable {
 
-  private ArrayList<CreditCard> creditCards;
+  private Map<Long, CreditCard> creditCards;
 
-  public CreditCards(){
-     creditCards = new ArrayList<>();
+  public CreditCards() {
+    creditCards = new HashMap<>();
   }
 
   /*Add card from param to creditCards
   * @param CreditCard to add
   * */
-  public void addCard(CreditCard creditCard){
+  public void addCard(CreditCard creditCard) {
 
-    delateCardIfPresent(creditCard);
-    creditCards.add(creditCard);
+    removeCard(creditCard.getId());
+    creditCards.put(creditCard.getId(), creditCard);
 
   }
-  /*Remove card from creditCards by its index
-    * @param index of card to remove
+
+  /*Remove card from creditCards by its id
+    * @param id of card to remove
     * */
-  public void removeCard(int index){
-    creditCards.remove(index);
+  public void removeCard(long id) {
+    creditCards.remove(id);
   }
+
   /*Returns number of credit cards
     * @return int number
     * */
-  public int getSize(){
+  public int getSize() {
     return creditCards.size();
   }
 
-  /*Get a card by its index
-  * @param index of card to get
+  /*Get a card by its id
+  * @param id of card to get
   * @return credit card
   * */
-  public CreditCard getCard(int i){
-    return creditCards.get(i);
+  public CreditCard getCard(long id) {
+    return creditCards.get(id);
   }
 
-  /*Remove same card from arraylist. If missing do nothing.
-  * @param CreditCard to remove
-  * */
-  private void delateCardIfPresent(CreditCard creditCard){
-
-    for (CreditCard card: creditCards) {
-
-      if(card.equals(creditCard)){
-
-        creditCards.remove(card);
-        break;
-
-      }
-
-    }
+  public Collection<CreditCard> getCards() {
+    return creditCards.values();
   }
 
   @Override

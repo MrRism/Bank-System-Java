@@ -9,14 +9,13 @@ import bank_system.clients.services.MoneyHolder;
 import bank_system.clients.services.Order;
 import bank_system.clients.services.Orders;
 import bank_system.clients.services.payment_exceptions.PaymentException;
-import com.sun.corba.se.spi.ior.IdentifiableFactory;
-import com.sun.org.apache.bcel.internal.generic.I2F;
 import java.util.ArrayList;
+import java.util.Collection;
 
 
 /**
  * This class provides a implementation of the
- * client. For payment producing it needs reference to datastorage.
+ * client.
  *
  * Created on 3/16/2017.
  *
@@ -42,6 +41,7 @@ public class Client implements java.io.Serializable {
   public Client() {
     this("", "", false);
   }
+
   public Client(String name, String password) {
     this(name, password, false);
   }
@@ -69,8 +69,8 @@ public class Client implements java.io.Serializable {
 
   /*Annulate account and delete it
     * @param integer index of account to annul */
-  public void annulAccount(int index) {
-    bankAccounts.annulAccount(index);
+  public void annulAccount(long id) {
+    bankAccounts.annulAccount(id);
 
   }
 
@@ -94,80 +94,38 @@ public class Client implements java.io.Serializable {
 
   }
 
-  /**
-   * Generate the strings array of the <code>creditCards</code>
-   * property.
-   *
-   * @return array of strings. Each string have number and balance information. Amount of string
-   * equals number of clients credit cards.
-   */
-  public String[] getListOfBankAccounts() {
+  /*Produce payment
+      * @param withdraw object must implement <Code>MoneyHolder</Code>
+      * @param amount of money to pay
+      * @param depositObject object must implement <Code>MoneyHolder</Code>
+      * @param order may be order to pay. Null if it simple transaction.
+      * @throws Payment exception
+      * */
+  public void paymentProduce(MoneyHolder withdrawObject, long amount, MoneyHolder depositObject,
+      Order order)
+      throws PaymentException {
 
-    String[] result = new String[bankAccounts.getSize()];
+    if (withdrawObject != null){
 
-    for (int i = 0; i < bankAccounts.getSize(); i++) {
+      if (depositObject != null) {
 
-      result[i] =
-          bankAccounts.getAccount(i).getId() + " (" + bankAccounts.getAccount(i).getBalance()
-              + ") ";
+        if (depositObject.equals(withdrawObject)) {
+          throw new PaymentException("Error: same destination as source");
+        }
 
-    }
+        withdrawObject.withdraw(amount);
+        depositObject.deposit(amount);
+        setOrderPayed(order);
 
-    return result;
-  }
+      } else {
 
-  /**
-   * Generate the strings array of the <code>creditCards</code>
-   * property.
-   *
-   * @return array of strings. Each string have number and balance information. Amount of string
-   * equals number of clients credit cards.
-   */
+        //Simulation payment to other bank
+        withdrawObject.withdraw(amount);
+        setOrderPayed(order);
 
-  public String[] getListOfCreditCards() {
-
-    String[] result = new String[creditCards.getSize()];
-
-    for (int i = 0; i < creditCards.getSize(); i++) {
-
-      result[i] =
-          creditCards.getCard(i).getId() + " (" + creditCards.getCard(i).getBalance() + ") ";
-
-    }
-
-    return result;
-  }
-
-  /**
-   * Generate the strings array of the <code>creditCards</code>
-   * property.
-   *
-   * @return array of strings. Each string have number and balance information. Amount of string
-   * equals number of clients credit cards.
-   */
-  public String[] getListOfOrders() {
-
-    removeCompleteOrders();
-
-    ArrayList<String> result = new ArrayList<>();
-
-    for (int i = 0; i < orders.getOrdersAmount(); i++) {
-
-      if (!orders.getOrder(i).isPaid()) {
-
-        result.add(
-            orders.getOrder(i).getCreationDate().getDate() + "/" +
-                (1 + orders.getOrder(i).getCreationDate().getMonth()) + "/" +
-                (1900 + orders.getOrder(i).getCreationDate().getYear()) + " " +
-                orders.getOrder(i).getCreationDate().getHours() + ":" +
-                orders.getOrder(i).getCreationDate().getMinutes() + " " +
-                " (" + orders.getOrder(i).getPaymentAmount() + ") ");
 
       }
     }
-
-    return result.toArray(new String[0]);
-
   }
 
   /*Removes orders with raised flag isPayed
@@ -192,68 +150,60 @@ public class Client implements java.io.Serializable {
     return password;
   }
 
-  public int getCreditCardsAmount() {
+  /**
+   * Generate the ArrayList of the <code>creditCards</code>
+   * property.
+   *
+   * @return Collection with all bank accounts.
+   */
+  public Collection<MoneyHolder> getListOfBankAccounts() {
 
-    return creditCards.getSize();
+    return new ArrayList<MoneyHolder>(bankAccounts.getAccounts()); //any better solution?
   }
 
-  public int getBankAccountsAmount() {
+  /**
+   * Generate the ArrayList of the <code>creditCards</code>
+   * property.
+   *
+   * @return Collection with all credit cards.
+   */
 
-    return bankAccounts.getSize();
+  public Collection<MoneyHolder> getListOfCreditCards() {
+
+    return new ArrayList<MoneyHolder>(creditCards.getCards());
   }
 
+  /**
+   * Generate the strings array of the <code>creditCards</code>
+   * property.
+   *
+   * @return array of strings. Each string have number and balance information. Amount of string
+   * equals number of clients credit cards.
+   */
+  //!@#Edit
+  public String[] getListOfOrders() {
 
-  public CreditCard getCreditCard(int index) {
-    return creditCards.getCard(index);
-  }
+    removeCompleteOrders();
 
-  public BankAccount getBankAccount(int index) {
-    return bankAccounts.getAccount(index);
-  }
+    ArrayList<String> result = new ArrayList<>();
 
-  /*Change value isBlocked for card. From blocked card unable to withdraw.
-        * @param index
-         * */
-  public void blockCard(int index) {
+    for (int i = 0; i < orders.getOrdersAmount(); i++) {
 
-    creditCards.getCard(index).setBlocked(true);
+      if (!orders.getOrder(i).isPaid()) {
 
-  }
-
-
-  /*Produce payment
-      * @param withdraw object must implement <Code>MoneyHolder</Code>
-      * @param amount of money to pay
-      * @param depositObject object must implement <Code>MoneyHolder</Code>
-      * @param order may be order to pay. Null if it simple transaction.
-      * @throws Payment exception
-      * */
-  public void paymentProduce(MoneyHolder withdrawObject, long amount, MoneyHolder depositObject,
-      Order order)
-      throws PaymentException {
-
-    if (withdrawObject != null)
-
-    {
-      if (depositObject != null) {
-
-        if (depositObject.equals(withdrawObject)) {
-          throw new PaymentException("Error: same destination as source");
-        }
-
-        withdrawObject.withdraw(amount);
-        depositObject.deposit(amount);
-        setOrderPayed(order);
-
-      } else {
-
-        //Simulation payment to other bank
-        withdrawObject.withdraw(amount);
-        setOrderPayed(order);
-
+        result.add(
+            orders.getOrder(i).getCreationDate().getDate() + "/" +
+                (1 + orders.getOrder(i).getCreationDate().getMonth()) + "/" +
+                (1900 + orders.getOrder(i).getCreationDate().getYear()) + " " +
+                orders.getOrder(i).getCreationDate().getHours() + ":" +
+                orders.getOrder(i).getCreationDate().getMinutes() + " " +
+                " (" + orders.getOrder(i).getPaymentAmount() + ") ");
 
       }
     }
+
+    return result.toArray(new String[0]);
+
   }
 
   private void setOrderPayed(Order payedOrder) {

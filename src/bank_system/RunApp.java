@@ -10,9 +10,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
-
 
 /**
  * Class provide application start, data load from file.
@@ -56,6 +54,7 @@ import java.io.ObjectInputStream;
  * PROFIT
  *
  */
+
 public class RunApp {
 
   private DataStorage dataStorage = null;
@@ -131,32 +130,36 @@ public class RunApp {
 
     } finally {
 
-      try {
-        if (fileInputStreamStatic != null)
-        fileInputStreamStatic.close();
-      } catch (IOException e) {
-        e.printStackTrace();
+      if (fileInputStreamStatic != null) {
+        try {
+          fileInputStreamStatic.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
 
-      try {
-        if (fileInputStreamData != null)
-        fileInputStreamData.close();
-      } catch (IOException e) {
-        e.printStackTrace();
+      if (fileInputStreamData != null) {
+        try {
+          fileInputStreamData.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
 
-      try {
-        if (dataInputStream != null)
-        dataInputStream.close();
-      } catch (IOException e) {
-        e.printStackTrace();
+      if (dataInputStream != null) {
+        try {
+          dataInputStream.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
 
-      try {
-        if (objectInputStream != null)
-        objectInputStream.close();
-      } catch (IOException e) {
-        e.printStackTrace();
+      if (objectInputStream != null) {
+        try {
+          objectInputStream.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
 
 

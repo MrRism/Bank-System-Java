@@ -30,7 +30,7 @@ public class DataStorage implements java.io.Serializable {
 
   public DataStorage() {
 
-    if (clients.getListOfUsers().length < 1) {
+    if (clients.getUsers().size() < 1) {
 
       clients.addClient(new Client("admin", "admin", true));
 
@@ -63,59 +63,14 @@ public class DataStorage implements java.io.Serializable {
   }
 
   /*
-    * Takes credit card from the list of card with negative balance<p>
-    *
-    * @param index of <code>CreditCard</code> to return.
-    * @return credit card
-    *
-    * */
-  public CreditCard getCardWithNegBalance(int index) {
-
-    return cardsWithNegativeBalance.getCard(index);
-
-  }
-
-  /*
   * Remove credit card from list of card with negative balance, do nothing if missing<p>
   *
   * @param <code>CreditCard</code> to remove.
   * */
 
-  public void removeNegativeBalanceCard(CreditCard creditCard) {
+  public void removeNegativeBalanceCard(CreditCard cardToRemove) {
 
-    for (int i = 0; i < cardsWithNegativeBalance.getSize(); i++) {
-
-      if (cardsWithNegativeBalance.getCard(i).equals(creditCard)) {
-
-        cardsWithNegativeBalance.removeCard(i);
-        break;
-
-      }
-
-    }
-
-  }
-
-  /*
-    * Generate strings with information about cards with negative balance.
-    *
-    * @return string array with size equal to amount of card with negative balance.
-    *
-    * */
-  public String[] getListNegativeBalanceCards() {
-
-    String[] resault = new String[cardsWithNegativeBalance.getSize()];
-
-    for (int i = 0; i < cardsWithNegativeBalance.getSize(); i++) {
-
-      resault[i] = "" +
-          cardsWithNegativeBalance.getCard(i).getId() + " " +
-          cardsWithNegativeBalance.getCard(i).getBalance() + " " +
-          cardsWithNegativeBalance.getCard(i).isBlocked();
-
-    }
-
-    return resault;
+    cardsWithNegativeBalance.removeCard(cardToRemove.getId());
 
   }
 
@@ -159,29 +114,29 @@ public class DataStorage implements java.io.Serializable {
 
     } finally {
 
+      if (fileOutputStreamStatic != null)
       try {
-        if (fileOutputStreamStatic != null)
         fileOutputStreamStatic.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
 
+      if (fileOutputStreamData != null)
       try {
-        if (fileOutputStreamData != null)
         fileOutputStreamData.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
 
+      if (dataOutputStream != null)
       try {
-        if (dataOutputStream != null)
         dataOutputStream.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
 
+      if (objectOutputStream != null)
       try {
-        if (objectOutputStream != null)
         objectOutputStream.close();
       } catch (IOException e) {
         e.printStackTrace();

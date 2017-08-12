@@ -9,6 +9,8 @@ import bank_system.clients.services.payment_exceptions.PaymentException;
  */
 public interface MoneyHolder {
 
+  long getId();
+  long getBalance();
   void withdraw(long amount) throws PaymentException;
   void deposit(long amount);
 

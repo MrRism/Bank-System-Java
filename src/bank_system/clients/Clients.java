@@ -1,10 +1,8 @@
 package bank_system.clients;
 
 
-import bank_system.clients.services.BankAccount;
-import bank_system.clients.services.CreditCard;
 import bank_system.clients.services.MoneyHolder;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 /**
@@ -13,26 +11,26 @@ import java.util.HashMap;
  * Created on 3/16/2017.
  *
  * @author Serhii Petrusha aka Mr_Rism
- * @since  JDK1.8
+ * @since JDK1.8
  */
-public class Clients implements java.io.Serializable{
-  HashMap<String, Client> users = new HashMap<>();
+public class Clients implements java.io.Serializable {
 
+  private HashMap<String, Client> users = new HashMap<>();
 
 
   public Clients() {
 
   }
-/*
-* Search for client by it's name.<p>
-*
-* @param string name of client
-* @return client
-* */
-  public Client getUserByName(String name){
 
+  /*
+  * Search for client by it's name.<p>
+  *
+  * @param string name of client
+  * @return client
+  * */
+  public Client getUserByName(String name) throws NullPointerException {
 
-    return users.getOrDefault(name, null);
+    return users.get(name);
 
   }
 
@@ -41,46 +39,48 @@ public class Clients implements java.io.Serializable{
   *
   * @param client to add
   * */
-  public void addClient(Client client){
+  public void addClient(Client client) {
 
-    users.put(client.getName(),client);
+    users.put(client.getName(), client);
 
 
   }
 
   /*
-  * Search for objects of MoneyHolder with same number, and returns it<p>
+  * Search for objects of MoneyHolder with same id, and returns it<p>
   *
-  * @param Number of objects to search.
-  * @param isDepositToCard
+  * @param id of objects to search.
+  * @param DepositToCard
   * @return Credit card if it was found, null either.
   * */
-  public MoneyHolder getMoneyHolderByNumber(long Number, Boolean isDepositToCard){
+  public MoneyHolder getMoneyHolderByNumber(long id, Boolean DepositToCard) {
 
-    if (isDepositToCard){
+    if (DepositToCard) {
 
-      for (Client client: users.values()){
+      for (Client client : users.values()) {
 
-        for (int i = 0 ; i<client.getCreditCardsAmount(); i++){
+        for (MoneyHolder moneyHolder : client.getListOfCreditCards()) {
 
-          if (client.getCreditCard(i).getId() == Number){
-
-            return client.getCreditCard(i);
-
+          if (moneyHolder.getId() == id) {
+            return moneyHolder;
           }
+
+
         }
       }
     } else {
-      for (Client client: users.values()){
+      for (Client client : users.values()) {
 
-        for (int i = 0 ; i<client.getBankAccountsAmount(); i++){
+        for (MoneyHolder moneyHolder : client.getListOfBankAccounts()) {
 
-          if (client.getBankAccount(i).getId() == Number){
-
-            return client.getBankAccount(i);
-
+          if (moneyHolder.getId() == id) {
+            return moneyHolder;
           }
+
+
         }
+
+
       }
 
     }
@@ -90,41 +90,17 @@ public class Clients implements java.io.Serializable{
   }
 
   /*
-    * Generate strings with information about clients.
+    * Returns users.
     *
-    * @return string array with size equal to amount of clients.
+    * @return Collection with all users.
     *
     * */
-  public String[] getListOfUsers(){
+  public Collection<Client> getUsers() {
 
-    String[] resaut=new String[users.size()];
-
-    int i = 0;
-
-    for (Client client : users.values()) {
-
-      resaut[i++]=client.getName();
-
-    }
-
-    return resaut;
+    return users.values();
 
   }
-  public String[] getListOfClients(){
 
-    ArrayList<String> resaut = new ArrayList<>();
-
-    int i = 0;
-
-    for (Client client : users.values()) {
-
-      if (!client.isAdmin())resaut.add(client.getName());
-
-    }
-
-    return resaut.toArray(new String[0]);
-
-  }
 
   @Override
   public String

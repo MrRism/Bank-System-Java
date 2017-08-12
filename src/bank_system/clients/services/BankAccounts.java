@@ -1,6 +1,9 @@
 package bank_system.clients.services;
 
-import java.util.ArrayList;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Stores all bank accounts.
@@ -8,43 +11,39 @@ import java.util.ArrayList;
  * Created on 3/16/2017.
  *
  * @author Serhii Petrusha aka Mr_Rism
- * @since   JDK1.8
+ * @since JDK1.8
  */
-public class BankAccounts implements java.io.Serializable{
-  private  ArrayList<BankAccount> bankAccounts = new ArrayList<>();
-  /*Adds account to bank accounts
-      * @param BankAccount */
-  public void addAccount(BankAccount bankAccount)
-  {
+public class BankAccounts implements java.io.Serializable {
 
-    bankAccounts.add(bankAccount);
+  private Map<Long, BankAccount> bankAccounts = new HashMap<>();
+
+  /*Adds account to bank accounts.
+      * @param BankAccount */
+  public void addAccount(BankAccount bankAccount) {
+
+    bankAccounts.put(bankAccount.getId(), bankAccount);
 
   }
 
   /*Annulate account and delete it
-    * @param integer index of account to annul */
-  public void annulAccount(int index)
-  {
-    bankAccounts.remove(index);
-
-     }
-  /*Returns size of arrayList field <code>bankAccounts</code>
- * @return integer size */
-  public int getSize(){
-
-
-    return bankAccounts.size();
+    * @param long id of account to annul */
+  public void annulAccount(long id) {
+    bankAccounts.remove(id);
 
   }
 
-  /*Returns one bank account by its index
-    * @param index of bank account to return
+  /*Returns one bank account by its id
+    * @param id of bank account to return
     * @return BankAccount
     * */
-    public BankAccount getAccount(int i){
+  public BankAccount getAccount(long i) {
 
     return bankAccounts.get(i);
 
+  }
+
+  public Collection<BankAccount> getAccounts() {
+    return bankAccounts.values();
   }
 
   @Override

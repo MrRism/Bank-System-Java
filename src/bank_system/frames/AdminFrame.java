@@ -3,13 +3,16 @@ package bank_system.frames;
 import static bank_system.Consts.*;
 
 import bank_system.DataStorage;
+import bank_system.clients.Client;
 import bank_system.clients.Clients;
+import bank_system.clients.services.CreditCard;
 import bank_system.clients.services.Order;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -27,17 +30,13 @@ import javax.swing.WindowConstants;
  * Created on 3/19/2017.
  *
  * @author Serhii Petrusha aka Mr_Rism
- * @since   JDK1.8
+ * @since JDK1.8
  */
 class AdminFrame extends JFrame {
 
   private DataStorage dataStorage = null;
 
-  private JList<String> listOfCreditCardWithNegativeBalance;
-
-  AdminFrame() {
-
-  }
+  private JList<CreditCardToJlistAdapter> listOfCreditCardWithNegativeBalance = null;
 
   AdminFrame(DataStorage dataStorage) {
 
@@ -50,7 +49,7 @@ class AdminFrame extends JFrame {
     setLayout(new BorderLayout());
 
     JPanel topPanel = new JPanel();
-    topPanel.add(new JLabel("Curent user: Admin"));
+    topPanel.add(new JLabel("Current user: Admin"));
 
     JButton logOut = new JButton("Log out");
     topPanel.add(logOut);
@@ -63,7 +62,34 @@ class AdminFrame extends JFrame {
     centerPanel.add(orderCreationPanel);
     orderCreationPanel.add(new JLabel("Orders "));
 
-    JComboBox<String> comboBoxClients = new JComboBox<>(clients.getListOfClients());
+    class ClientToComboBoxAdapter {
+
+      private Client client = null;
+
+       ClientToComboBoxAdapter(Client client) {
+        this.client = client;
+
+      }
+
+      public Client getClient() {
+        return client;
+      }
+
+      @Override
+      public String toString() {
+        return client.getName();
+      }
+    }
+
+    JComboBox<ClientToComboBoxAdapter> comboBoxClients = new JComboBox<>();
+
+    for (Client client : clients.getUsers()
+        ) {
+      if (!client.isAdmin()) {
+        comboBoxClients.addItem(new ClientToComboBoxAdapter(client));
+      }
+
+    }
 
     JTextField orderPaymentAmount = new JTextField("", 6);
     JTextField orderInfoField = new JTextField("", 18);
@@ -87,15 +113,18 @@ class AdminFrame extends JFrame {
 
         try {
 
-          dataStorage.getClients().getUserByName((String) comboBoxClients.getSelectedItem()).
-              addOrder(new Order(
-                      Long.parseLong(orderDestinationAccount.getText()),
-                      Long.parseLong(orderPaymentAmount.getText()),
-                      orderInfoField.getText()
-                  )
-              );
+          ClientToComboBoxAdapter clientToComboBoxAdapter = (ClientToComboBoxAdapter) comboBoxClients
+              .getSelectedItem();
+          Client client = clientToComboBoxAdapter.getClient();
+          client.addOrder(
+              new Order(
+                  Long.parseLong(orderDestinationAccount.getText()),
+                  Long.parseLong(orderPaymentAmount.getText()),
+                  orderInfoField.getText()
+              )
+          );
           dataStorage.saveToFile();
-          JOptionPane.showMessageDialog(null,"Order added");
+          JOptionPane.showMessageDialog(null, "Order added");
           comboBoxClients.setSelectedIndex(-1);
           orderDestinationAccount.setText("");
           orderInfoField.setText("");
@@ -115,7 +144,10 @@ class AdminFrame extends JFrame {
 
     creditCardsAdminPanel.setLayout(new BorderLayout());
 
-    listOfCreditCardWithNegativeBalance = new JList<>(dataStorage.getListNegativeBalanceCards());
+
+    listOfCreditCardWithNegativeBalance = new JList<>();
+    refreshList();
+
 
     creditCardsAdminPanel.add(listOfCreditCardWithNegativeBalance, BorderLayout.CENTER);
     JButton blockCardButton = new JButton("Block Card");
@@ -126,8 +158,9 @@ class AdminFrame extends JFrame {
 
         if (listOfCreditCardWithNegativeBalance.getSelectedIndex() > -1) {
 
-          dataStorage.getCardWithNegBalance(listOfCreditCardWithNegativeBalance.getSelectedIndex()).
-              setBlocked(true);
+          CreditCardToJlistAdapter creditCardToJlistAdapter = listOfCreditCardWithNegativeBalance.getSelectedValue();
+          CreditCard creditCard = creditCardToJlistAdapter.getCreditCard();
+              creditCard.setBlocked(true);
           refreshList();
           dataStorage.saveToFile();
 
@@ -155,20 +188,51 @@ class AdminFrame extends JFrame {
     });
 
   }
-/*
-* Updates JList with cards with negative balance
-*
-* */
-  private void refreshList() {
-    if (listOfCreditCardWithNegativeBalance != null) {
+  /**
+   * Provide a <code>CreditCard></code>adaptation for population a JComboBox. It's overrides toString().
+   *
+   */
+  private class CreditCardToJlistAdapter {
 
-      listOfCreditCardWithNegativeBalance.removeAll();
-      listOfCreditCardWithNegativeBalance.setListData(dataStorage.getListNegativeBalanceCards());
+    CreditCard creditCard = null;
 
+    CreditCardToJlistAdapter(CreditCard creditCard ){
 
+      this.creditCard = creditCard;
 
     }
+
+    public CreditCard getCreditCard() {
+      return creditCard;
+    }
+
+    @Override
+    public String toString() {
+      return "Id:"+creditCard.getId()+ " B:" +creditCard.getBalance();
+    }
   }
+
+
+  /*
+  * Updates JList with cards with negative balance
+  *
+  * */
+  private void refreshList() {
+
+    listOfCreditCardWithNegativeBalance.removeAll();
+
+    Vector<CreditCardToJlistAdapter> cardToJlistAdapterList = new Vector<>();
+
+    for (CreditCard creditCard : dataStorage.getCardsWithNegativeBalance().getCards()
+        ) {
+      if (!creditCard.isBlocked())
+           cardToJlistAdapterList.add(new CreditCardToJlistAdapter(creditCard));
+
+    }
+
+    listOfCreditCardWithNegativeBalance.setListData(cardToJlistAdapterList);
+
+    }
 
   @Override
   public String toString() {
